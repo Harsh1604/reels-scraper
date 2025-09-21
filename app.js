@@ -9,7 +9,8 @@ app.get("/", async(req, res) => {
 })
 
 app.get("/reels", async (req, res) => {
-  const { username } = req.query.username;
+  const { username } = req.query;
+  console.log(username);
   if (!username) return res.status(400).json({ error: "Username required" });
 
   const browser = await chromium.launch({ headless: true, slowMo: 200 }); 
