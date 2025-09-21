@@ -4,8 +4,12 @@ import { chromium } from "playwright";
 const app = express();
 app.use(express.json());
 
-app.post("/reels", async (req, res) => {
-  const { username } = req.body;
+app.get("/", async(req, res) => {
+  res.send("Hii, This API is live!, send username in query")
+})
+
+app.get("/reels", async (req, res) => {
+  const { username } = req.query.username;
   if (!username) return res.status(400).json({ error: "Username required" });
 
   const browser = await chromium.launch({ headless: true, slowMo: 200 }); 
