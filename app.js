@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 app.get("/", async(req, res) => {
-  res.send("Hii, This API is live!, send username in query")
+  res.status(200).send("Hii, This API is live!, send username in query")
 })
 
 app.get("/reels", async (req, res) => {
@@ -61,7 +61,7 @@ app.get("/reels", async (req, res) => {
     );
 
     // await browser.close();
-    res.json({ username, reels });
+    res.status(200).json({ username, reels });
   } catch (err) {
     await browser.close();
     console.error("Scraping failed:", err);
