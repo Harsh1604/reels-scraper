@@ -10,7 +10,6 @@ app.get("/", async(req, res) => {
 
 app.get("/reels", async (req, res) => {
   const { username } = req.query;
-  console.log(username);
   if (!username) return res.status(400).json({ error: "Username required" });
 
   const browser = await chromium.launch({ headless: true, slowMo: 200 }); 
@@ -32,15 +31,36 @@ app.get("/reels", async (req, res) => {
 
     // Extract reel data (id, basic: URL, thumbnail, caption)
     const reels = await page.$$eval('a[href*="/reel/"]', (nodes) =>
-      nodes.map((node) => ({
-        _id : node.href.split("/").filter(Boolean).pop(),
-        reelUrl: node.href,
-        thumbnail: node.querySelector("img")?.src || null,
-        caption: node.querySelector("img")?.alt || "",
-      }))
+    
+      nodes.map((node) => {
+        const fiberKey = Object.keys(node).find(k => k.startsWith("__reactFiber$"));
+        const fiber = node[fiberKey];
+
+        // try to access the data you want
+        let media = null;
+        if (fiber?.child?.memoizedProps?.children[0]?.props?.clip?.media) {
+          media = fiber.child.memoizedProps.children[0].props.clip.media;
+        }
+
+        let date = null;
+        if(media?.caption?.created_at){
+          date = new Date(media.caption.created_at * 1000);
+        }
+
+        return {
+          _id : node.href.split("/").filter(Boolean).pop(),
+          reelUrl: node.href,
+          // thumbnail: node.querySelector("img")?.src || null,
+          caption: media?.caption.text || "",
+          date: date ? date.toISOString() : "",
+          views: media?.play_count ?? 0,
+          likes: media?.like_count ?? 0,
+          comments: media?.comment_count ?? 0,
+        }
+      })
     );
 
-    await browser.close();
+    // await browser.close();
     res.json({ username, reels });
   } catch (err) {
     await browser.close();
